@@ -23,10 +23,10 @@ export const THRESHOLDS = {
   /** Below this confidence we refuse to downgrade and cap upgrades at `uncertainCeiling`. */
   minConfidence: 0.3,
   /**
-   * The same floor for any other SystemOne server. Tuned on Ollama clef-flash, which reports 0.1–0.5
-   * for picks Jev makes at 0.9+; at 0.3 it would almost never downgrade.
+   * The same floor for any other SystemOne server: off. In eval/ Ollama clef-flash picked the expected
+   * tier on 13 of 14 prompts but reported 0.01–0.25 confidence, so any floor mostly blocked right picks.
    */
-  customMinConfidence: 0.1,
+  customMinConfidence: 0,
   uncertainCeiling: 'sonnet' as Tier,
   /**
    * A model switch re-sends the whole conversation uncached (measured at ~23.6k cache-creation

@@ -12,7 +12,7 @@ test('TYPESAFE_API_KEY works too', () => {
 
 test('a SystemOne URL wins over a TypeSafe key', () => {
   const s = resolveSettings({ JEV_API_KEY: 'k', SWITCHYARD_SYSTEMONE_URL: 'http://localhost:11434/', SWITCHYARD_SYSTEMONE_MODEL: 'clef-flash' }, {})
-  expect(s.backend).toEqual({ kind: 'custom', url: 'http://localhost:11434', model: 'clef-flash', key: undefined, timeoutMs: 8000, minConfidence: 0.1 })
+  expect(s.backend).toEqual({ kind: 'custom', url: 'http://localhost:11434', model: 'clef-flash', key: undefined, timeoutMs: 8000, minConfidence: 0 })
 })
 
 test('the confidence floor can be set, and is capped at 1', () => {

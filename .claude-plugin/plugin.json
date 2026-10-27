@@ -31,7 +31,7 @@
     "min_confidence": {
       "type": "number",
       "title": "Minimum confidence",
-      "description": "Below this the router won't downgrade. 0 uses 0.3 for TypeSafe and 0.1 otherwise.",
+      "description": "Below this the router won't downgrade. 0 uses 0.3 for TypeSafe and no floor otherwise.",
       "default": 0
     },
     "baseline": {
