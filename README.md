@@ -1,5 +1,7 @@
 # switchyard
 
+![switchyard: every turn switched onto the right track](assets/hero.jpg)
+
 A Claude Code mod that routes each turn, and each sub-agent, to the cheapest model that can do the
 job. A SystemOne decision model makes the call: TypeSafe Jev by default, or any server with a
 `/v1/systemone` endpoint (Ollama, llama.cpp, LM Studio, LiteLLM).

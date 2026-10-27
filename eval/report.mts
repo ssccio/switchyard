@@ -23,7 +23,7 @@ type Row = {
 
 const DECISION = /systemone \S+ model=\S+ keep_alive=\S+ → (\w+) (\d+)ms (?:choice=(\S+) confidence=([\d.]+) )?.*for "(.*)"$/
 const MAIN_STEP = /turn\.step main #0: asked \S+, sent (\S+),/
-const SPAWN = /agent\.spawn (.*)$/
+const SPAWN = /^\S+ agent\.spawn (.*)$/
 const tier = (model?: string) => ['haiku', 'sonnet', 'opus', 'fable'].find((t) => model?.includes(t)) ?? model ?? '-'
 
 function load(backend: string, p: Prompt): Row | null {
