@@ -19,13 +19,6 @@ export const DEFAULT_MODELS: Record<Tier, string> = {
 export const tierOf = (model: string | undefined): Tier | null =>
   TIER_NAMES.find((tier) => model?.includes(tier) ?? false) ?? null
 
-/**
- * Agent types whose own definition already picks a cheap model. A mod can't see that model, so
- * routing them would compare against the parent's and could upgrade them (Explore defaults to Haiku).
- * ponytail: a fixed list; make it an option if user-defined cheap agents need the same treatment.
- */
-export const PASSTHROUGH_AGENTS: readonly string[] = ['Explore']
-
 export const THRESHOLDS = {
   /** Below this confidence we refuse to downgrade and cap upgrades at `uncertainCeiling`. */
   minConfidence: 0.3,

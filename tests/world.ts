@@ -104,7 +104,7 @@ export const prompt = ($: Engine, text: string, kind: 'composer' | 'peer' | 'tas
 export const run = async ($: Engine, args: string) =>
   (await $.command.run({ command: 'switchyard', args, origin: { kind: 'composer' }, presentation: { isFullscreen: false, columns: 120 } })).text ?? ''
 
-export const spawn = ($: Engine, extra: { model?: string; fork?: boolean; subagentType?: string } = {}) =>
+export const spawn = ($: Engine, extra: { model?: string; fork?: boolean } = {}) =>
   $.agent.spawn({
     tool_use_id: 'tool-1',
     prompt: 'find every caller of parse() and list them',

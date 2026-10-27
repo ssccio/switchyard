@@ -1,5 +1,5 @@
 import type { EngineInterface, Register } from 'claude-code'
-import { PASSTHROUGH_AGENTS, resolveSettings, THRESHOLDS, tierOf, type Settings } from '../src/config.ts'
+import { resolveSettings, THRESHOLDS, tierOf, type Settings } from '../src/config.ts'
 import { decide, detectOverride, isUserOrigin, type Verdict } from '../src/policy.ts'
 import { askSystemOne, buildRequest, type Reply } from '../src/systemone.ts'
 import { addDecision, addStep, emptyTotals, mergeTotals, savings, type DecisionRecord, type Totals, type Usage } from '../src/stats.ts'
@@ -236,17 +236,7 @@ export const register: Register = (on, options) => {
   })
 
   on('agent.spawn', async ($, e, next) => {
-    const skip = !settings?.backend
-      ? 'routing off'
-      : paused
-        ? 'paused'
-        : e.fork
-          ? 'fork'
-          : e.model !== undefined
-            ? `asked for ${e.model}`
-            : PASSTHROUGH_AGENTS.includes(e.subagentType)
-              ? 'keeps its own model'
-              : null
+    const skip = !settings?.backend ? 'routing off' : paused ? 'paused' : e.fork ? 'fork' : e.model !== undefined ? `asked for ${e.model}` : null
     if (skip) {
       const result = await next(e)
       dbg($, `agent.spawn ${e.subagentType}: left alone (${skip}), runs on ${result.deny === undefined ? result.model : 'nothing: refused'}`)
