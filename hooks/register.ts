@@ -83,7 +83,7 @@ async function ask($: Api, prompt: string, current: string, context: number, tim
   const request = buildRequest({ model: backend.model, prompt, current, contextTokens: context, models: s.models, tiers: s.tiers })
   const reply = await askSystemOne($, backend, withKeepAlive ? { ...request, keep_alive: '30m' } : request, timeoutMs ?? backend.timeoutMs)
   const result = reply.outcome === 'ok' ? `choice=${reply.answer.model} confidence=${reply.answer.confidence.toFixed(2)}` : reply.detail
-  dbg($, `systemone ${backend.url}/v1/systemone model=${backend.model} keep_alive=${withKeepAlive} → ${reply.outcome} ${reply.ms}ms ${result}`)
+  dbg($, `systemone ${backend.url}/v1/systemone model=${backend.model} keep_alive=${withKeepAlive} → ${reply.outcome} ${reply.ms}ms ${result} for "${prompt.slice(0, 40).replace(/\s+/g, ' ')}"`)
   return reply
 }
 

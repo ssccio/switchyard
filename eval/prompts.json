@@ -1,0 +1,17 @@
+[
+  { "id": "01-tierof", "expect": "haiku", "prompt": "What does tierOf in src/config.ts return for 'claude-opus-4-8'? Answer in one line." },
+  { "id": "02-env-vars", "expect": "haiku", "prompt": "List the environment variables switchyard reads. Just the names." },
+  { "id": "03-timeout", "expect": "haiku", "prompt": "What is the default decision timeout for the TypeSafe backend? One line." },
+  { "id": "04-typos", "expect": "haiku", "prompt": "Check the first paragraph of README.md for typos and list any you find. Do not edit files." },
+  { "id": "05-pinning", "expect": "sonnet", "prompt": "Explain how hooks/register.ts keeps one model for every request in a turn, including tool-loop steps." },
+  { "id": "06-write-test", "expect": "sonnet", "prompt": "Write, in your reply only, a test for percentile() in src/stats.ts covering odd-length arrays and p=0. Do not edit files." },
+  { "id": "07-test-map", "expect": "sonnet", "prompt": "Summarize what each test file under tests/ covers, one line each." },
+  { "id": "08-store-keys", "expect": "sonnet", "prompt": "Use an Explore agent to find every place switchyard writes to $.store, and report the key names." },
+  { "id": "09-savings-review", "expect": "opus", "prompt": "Review the savings math in src/stats.ts for correctness, especially the switch penalty. Can net savings be overstated? Explain with a worked example. Do not edit files." },
+  { "id": "10-races", "expect": "opus", "prompt": "turn.step, agent.spawn and the startup probe in hooks/register.ts can run concurrently. Find any race conditions on the module-level state and explain each. Do not edit files." },
+  { "id": "11-design", "expect": "opus", "prompt": "Design a change so a routed sub-agent's savings baseline uses its agent definition's own model instead of the parent's. Which Claude Code mod APIs would it need, and what are the risks? Do not edit files." },
+  { "id": "12-throws", "expect": "opus", "prompt": "Is there any input or server behaviour that makes askSystemOne in src/systemone.ts throw instead of returning a Reply? Reason it through carefully. Do not edit files." },
+  { "id": "13-two-agents", "expect": "sonnet", "prompt": "Run two general-purpose sub-agents in parallel: one counts the lines in each file under src/, the other lists each file's exported names. Report both results." },
+  { "id": "14-one-agent", "expect": "haiku", "prompt": "Use a general-purpose sub-agent to explain decide() in src/policy.ts in two sentences, and pass its answer on." },
+  { "id": "15-override", "expect": "opus", "prompt": "use opus: give a one-line summary of README.md." }
+]
