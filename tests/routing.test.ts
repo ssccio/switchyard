@@ -105,6 +105,17 @@ test('a timeout keeps the current model and the band says so', async ($, on) => 
   expect(await run($, '')).toMatch(/⚠ timeout, kept opus/)
 })
 
+test('a local server routes on its own lower confidence floor', async ($, on) => {
+  const w = world(on, {
+    env: { SWITCHYARD_SYSTEMONE_URL: 'http://localhost:11434', SWITCHYARD_SYSTEMONE_MODEL: 'clef-flash' },
+    replies: [{ status: 200, text: answer('claude-haiku-5-5') }, { status: 200, text: answer('claude-haiku-5-5', 0.15) }],
+  })
+  await start($, w.clock)
+  await prompt($, 'rename x')
+  await step($, { turnId: 't1', index: 0, model: 'claude-opus-5-5' })
+  expect(w.models).toEqual(['claude-haiku-5-5'])
+})
+
 test('turns send keep_alive once the local server has accepted it', async ($, on) => {
   const w = world(on, { env: { SWITCHYARD_SYSTEMONE_URL: 'http://localhost:11434', SWITCHYARD_SYSTEMONE_MODEL: 'clef-flash' } })
   await start($, w.clock)

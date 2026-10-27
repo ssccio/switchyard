@@ -20,7 +20,9 @@ Set these in `/config` (plugin options) or in the environment. Options win.
 | systemone_model | `SWITCHYARD_SYSTEMONE_MODEL` | `jev-latest` on TypeSafe; required otherwise |
 | systemone_key | `SWITCHYARD_SYSTEMONE_KEY` | none |
 | timeout_ms | `SWITCHYARD_TIMEOUT_MS` | 3000 TypeSafe, 8000 otherwise, capped at 9000 |
+| min_confidence | `SWITCHYARD_MIN_CONFIDENCE` | 0.3 TypeSafe, 0.1 otherwise |
 | baseline | `SWITCHYARD_BASELINE` | `usual` |
+| — | `SWITCHYARD_DEBUG` | off; `1` logs routing to the transcript, a path also appends to that file |
 | models | — | haiku/sonnet/opus/fable 5.x ids |
 | allow_fable | `SWITCHYARD_ALLOW_FABLE=1` | off |
 

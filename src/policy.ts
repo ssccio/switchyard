@@ -43,8 +43,10 @@ export function decide(input: {
   current: Tier
   available: readonly Tier[]
   contextTokens?: number
+  /** The backend's confidence floor; each server reports confidence on its own scale. */
+  minConfidence?: number
 }): Verdict {
-  const { prompt, answer, current, available, contextTokens = 0 } = input
+  const { prompt, answer, current, available, contextTokens = 0, minConfidence = THRESHOLDS.minConfidence } = input
   const settle = (tier: Tier, reason: string): Verdict => {
     // Keeping the current model never switches, even to a tier the router may not pick itself.
     if (tier === current) return { tier, reason: `${reason}/no-change`, changed: false }
@@ -58,7 +60,7 @@ export function decide(input: {
   if (!answer) return settle(current, 'no-answer')
 
   const target = answer.tier
-  if (answer.confidence < THRESHOLDS.minConfidence) {
+  if (answer.confidence < minConfidence) {
     if (rankOf(target) < rankOf(current)) return settle(current, 'low-confidence-no-downgrade')
     const ceiling = Math.max(rankOf(current), rankOf(THRESHOLDS.uncertainCeiling))
     if (rankOf(target) > ceiling) return settle(TIER_NAMES[ceiling]!,'low-confidence-capped')

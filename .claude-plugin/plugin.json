@@ -28,6 +28,12 @@
       "description": "0 uses 3000 for TypeSafe and 8000 otherwise. Capped at 9000.",
       "default": 0
     },
+    "min_confidence": {
+      "type": "number",
+      "title": "Minimum confidence",
+      "description": "Below this the router won't downgrade. 0 uses 0.3 for TypeSafe and 0.1 otherwise.",
+      "default": 0
+    },
     "baseline": {
       "type": "string",
       "title": "Savings baseline",

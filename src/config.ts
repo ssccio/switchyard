@@ -22,6 +22,11 @@ export const tierOf = (model: string | undefined): Tier | null =>
 export const THRESHOLDS = {
   /** Below this confidence we refuse to downgrade and cap upgrades at `uncertainCeiling`. */
   minConfidence: 0.3,
+  /**
+   * The same floor for any other SystemOne server. Tuned on Ollama clef-flash, which reports 0.1–0.5
+   * for picks Jev makes at 0.9+; at 0.3 it would almost never downgrade.
+   */
+  customMinConfidence: 0.1,
   uncertainCeiling: 'sonnet' as Tier,
   /**
    * A model switch re-sends the whole conversation uncached (measured at ~23.6k cache-creation
@@ -50,7 +55,15 @@ export const PRICES: Record<Tier, Price> = {
   fable: { input: 10, output: 50, cacheWrite: 12.5, cacheRead: 0.25 },
 }
 
-export type Backend = { kind: 'typesafe' | 'custom'; url: string; model: string; key?: string; timeoutMs: number }
+export type Backend = {
+  kind: 'typesafe' | 'custom'
+  url: string
+  model: string
+  key?: string
+  timeoutMs: number
+  /** Below this the policy won't downgrade and caps upgrades; confidence scales differ per server. */
+  minConfidence: number
+}
 
 export type Settings = {
   backend: Backend | null
@@ -71,6 +84,7 @@ export type Env = Partial<
     | 'SWITCHYARD_TIMEOUT_MS'
     | 'SWITCHYARD_BASELINE'
     | 'SWITCHYARD_ALLOW_FABLE'
+    | 'SWITCHYARD_MIN_CONFIDENCE'
     | 'JEV_API_KEY'
     | 'TYPESAFE_API_KEY',
     string | undefined
@@ -96,18 +110,34 @@ export function resolveSettings(env: Env, options: Readonly<Record<string, unkno
   const positive = (value: unknown) => (Number(value) > 0 ? Number(value) : 0)
   const timeout = Math.min(positive(options.timeout_ms) || positive(env.SWITCHYARD_TIMEOUT_MS), THRESHOLDS.maxTimeoutMs)
   const typesafeKey = text(env.JEV_API_KEY) ?? text(env.TYPESAFE_API_KEY)
+  // 0 means "use the backend's default", like the timeout; a value above 1 would block every decision
+  const confidence = Math.min(positive(options.min_confidence) || positive(env.SWITCHYARD_MIN_CONFIDENCE), 1)
 
   let backend: Backend | null = null
   let offReason = ''
   if (url) {
     if (model) {
       const key = text(options.systemone_key) ?? text(env.SWITCHYARD_SYSTEMONE_KEY)
-      backend = { kind: 'custom', url: url.replace(/\/+$/, ''), model, key, timeoutMs: timeout || THRESHOLDS.customTimeoutMs }
+      backend = {
+        kind: 'custom',
+        url: url.replace(/\/+$/, ''),
+        model,
+        key,
+        timeoutMs: timeout || THRESHOLDS.customTimeoutMs,
+        minConfidence: confidence || THRESHOLDS.customMinConfidence,
+      }
     } else {
       offReason = 'SWITCHYARD_SYSTEMONE_MODEL is not set'
     }
   } else if (typesafeKey) {
-    backend = { kind: 'typesafe', url: 'https://api.typesafe.ai', model: model ?? 'jev-latest', key: typesafeKey, timeoutMs: timeout || THRESHOLDS.typesafeTimeoutMs }
+    backend = {
+      kind: 'typesafe',
+      url: 'https://api.typesafe.ai',
+      model: model ?? 'jev-latest',
+      key: typesafeKey,
+      timeoutMs: timeout || THRESHOLDS.typesafeTimeoutMs,
+      minConfidence: confidence || THRESHOLDS.minConfidence,
+    }
   } else {
     offReason = 'no backend: set JEV_API_KEY or SWITCHYARD_SYSTEMONE_URL'
   }

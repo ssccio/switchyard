@@ -3,7 +3,7 @@ import { DEFAULT_MODELS, resolveSettings, tierOf } from '../src/config.ts'
 
 test('a JEV key selects TypeSafe with its defaults', () => {
   const s = resolveSettings({ JEV_API_KEY: 'k' }, {})
-  expect(s.backend).toEqual({ kind: 'typesafe', url: 'https://api.typesafe.ai', model: 'jev-latest', key: 'k', timeoutMs: 3000 })
+  expect(s.backend).toEqual({ kind: 'typesafe', url: 'https://api.typesafe.ai', model: 'jev-latest', key: 'k', timeoutMs: 3000, minConfidence: 0.3 })
 })
 
 test('TYPESAFE_API_KEY works too', () => {
@@ -12,7 +12,14 @@ test('TYPESAFE_API_KEY works too', () => {
 
 test('a SystemOne URL wins over a TypeSafe key', () => {
   const s = resolveSettings({ JEV_API_KEY: 'k', SWITCHYARD_SYSTEMONE_URL: 'http://localhost:11434/', SWITCHYARD_SYSTEMONE_MODEL: 'clef-flash' }, {})
-  expect(s.backend).toEqual({ kind: 'custom', url: 'http://localhost:11434', model: 'clef-flash', key: undefined, timeoutMs: 8000 })
+  expect(s.backend).toEqual({ kind: 'custom', url: 'http://localhost:11434', model: 'clef-flash', key: undefined, timeoutMs: 8000, minConfidence: 0.1 })
+})
+
+test('the confidence floor can be set, and is capped at 1', () => {
+  expect(resolveSettings({ JEV_API_KEY: 'k', SWITCHYARD_MIN_CONFIDENCE: '0.5' }, {}).backend?.minConfidence).toBe(0.5)
+  expect(resolveSettings({ JEV_API_KEY: 'k' }, { min_confidence: 0.2 }).backend?.minConfidence).toBe(0.2)
+  expect(resolveSettings({ JEV_API_KEY: 'k', SWITCHYARD_MIN_CONFIDENCE: '7' }, {}).backend?.minConfidence).toBe(1)
+  expect(resolveSettings({ JEV_API_KEY: 'k', SWITCHYARD_MIN_CONFIDENCE: '-1' }, { min_confidence: 0 }).backend?.minConfidence).toBe(0.3)
 })
 
 test('a URL without a model turns routing off and says why', () => {

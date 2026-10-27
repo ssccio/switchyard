@@ -71,6 +71,7 @@ async function readEnv($: Api) {
     SWITCHYARD_TIMEOUT_MS: await $.env.get('SWITCHYARD_TIMEOUT_MS'),
     SWITCHYARD_BASELINE: await $.env.get('SWITCHYARD_BASELINE'),
     SWITCHYARD_ALLOW_FABLE: await $.env.get('SWITCHYARD_ALLOW_FABLE'),
+    SWITCHYARD_MIN_CONFIDENCE: await $.env.get('SWITCHYARD_MIN_CONFIDENCE'),
     JEV_API_KEY: await $.env.get('JEV_API_KEY'),
     TYPESAFE_API_KEY: await $.env.get('TYPESAFE_API_KEY'),
   }
@@ -116,6 +117,7 @@ async function route($: Api, prompt: string, current: string, context: number, a
     current: from,
     available: s.tiers,
     contextTokens: context,
+    minConfidence: s.backend!.minConfidence,
   })
   const outcome = reply === null ? 'override' : reply.outcome !== 'ok' ? reply.outcome : verdict.changed ? 'routed' : 'keep'
   const ms = reply?.ms ?? 0

@@ -37,6 +37,10 @@ test('never downgrades on a low-confidence answer', () => {
   expect(out.reason).toMatch(/low-confidence-no-downgrade/)
 })
 
+test('a lower confidence floor lets the same answer downgrade', () => {
+  expect(decide({ ...base, answer: unsure('haiku'), minConfidence: 0.1 }).tier).toBe('haiku')
+})
+
 test('caps a low-confidence upgrade at the safe ceiling', () => {
   const out = decide({ ...base, current: 'haiku', answer: unsure('fable') })
   expect(out.tier).toBe('sonnet')
