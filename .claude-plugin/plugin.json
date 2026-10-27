@@ -1,0 +1,50 @@
+{
+  "name": "switchyard",
+  "version": "0.1.0",
+  "author": { "name": "Ken Trenkelbach" },
+  "description": "Routes each Claude Code turn and sub-agent to the cheapest sufficient model using a SystemOne decision model",
+  "userConfig": {
+    "systemone_url": {
+      "type": "string",
+      "title": "SystemOne URL",
+      "description": "Base URL of a /v1/systemone server, e.g. http://localhost:11434. Blank uses TypeSafe.",
+      "default": ""
+    },
+    "systemone_model": {
+      "type": "string",
+      "title": "Decision model",
+      "description": "Model the SystemOne server runs, e.g. clef-flash. Blank uses jev-latest on TypeSafe.",
+      "default": ""
+    },
+    "systemone_key": {
+      "type": "string",
+      "title": "SystemOne API key",
+      "description": "Bearer key for a server that needs one",
+      "sensitive": true
+    },
+    "timeout_ms": {
+      "type": "number",
+      "title": "Decision timeout (ms)",
+      "description": "0 uses 3000 for TypeSafe and 8000 otherwise. Capped at 9000.",
+      "default": 0
+    },
+    "baseline": {
+      "type": "string",
+      "title": "Savings baseline",
+      "description": "usual, opus, or an exact model id",
+      "default": "usual"
+    },
+    "models": {
+      "type": "string",
+      "title": "Tier models",
+      "description": "Overrides, e.g. haiku=claude-haiku-5-5,opus=claude-opus-5-5",
+      "default": ""
+    },
+    "allow_fable": {
+      "type": "boolean",
+      "title": "Allow the Fable tier",
+      "description": "Let the router pick the Fable tier for the hardest turns",
+      "default": false
+    }
+  }
+}
