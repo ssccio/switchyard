@@ -229,16 +229,35 @@ export const register: Register = (on, options) => {
       if (pin?.turnId === e.turnId && pin.model !== e.model) request = { ...e, model: pin.model }
     }
     const result = yield* next(request)
+    const who = e.agentId === undefined ? 'main' : `agent ${e.agentId}`
+    dbg($, `turn.step ${who} #${e.index}: asked ${e.model}, sent ${request.model}, answered by ${result.usage?.model ?? 'unknown'}`)
     if (result.usage) await record($, e.agentId, result.usage)
     return result
   })
 
   on('agent.spawn', async ($, e, next) => {
-    if (!settings?.backend || paused || e.fork || e.model !== undefined || PASSTHROUGH_AGENTS.includes(e.subagentType)) return next(e)
+    const skip = !settings?.backend
+      ? 'routing off'
+      : paused
+        ? 'paused'
+        : e.fork
+          ? 'fork'
+          : e.model !== undefined
+            ? `asked for ${e.model}`
+            : PASSTHROUGH_AGENTS.includes(e.subagentType)
+              ? 'keeps its own model'
+              : null
+    if (skip) {
+      const result = await next(e)
+      dbg($, `agent.spawn ${e.subagentType}: left alone (${skip}), runs on ${result.deny === undefined ? result.model : 'nothing: refused'}`)
+      return result
+    }
+    const s = settings!
     // ponytail: an agent definition's own model is invisible here, so the parent's stands in for "current"
     const verdict = await route($, e.prompt, e.parentModel, 0, true)
-    const result = await next(verdict.changed ? { ...e, model: settings.models[verdict.tier] } : e)
+    const result = await next(verdict.changed ? { ...e, model: s.models[verdict.tier] } : e)
     if (result.deny === undefined && result.agentId) agentBaselines.set(result.agentId, verdict.changed ? e.parentModel : result.model)
+    dbg($, `agent.spawn ${e.subagentType}: ${verdict.changed ? `routed to ${verdict.tier}` : 'unchanged'} (${verdict.reason}), runs on ${result.deny === undefined ? result.model : 'nothing: refused'}`)
     return result
   })
 

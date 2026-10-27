@@ -56,6 +56,18 @@ test('debug mode logs where requests go, and stays silent otherwise', async ($, 
   expect(w.logs.some((l) => /prompt\.submit origin=peer idle not routed/.test(l))).toBe(true)
 })
 
+test('debug mode logs which model each request and sub-agent ran on', async ($, on) => {
+  const w = world(on, { env: { JEV_API_KEY: 'test-key', SWITCHYARD_DEBUG: '1' } })
+  await start($, w.clock)
+  await prompt($, 'rename x')
+  await step($, { turnId: 't1', index: 0, model: 'claude-opus-5-5' })
+  await spawn($, { subagentType: 'Explore' })
+  await spawn($)
+  expect(w.logs).toContain('turn.step main #0: asked claude-opus-5-5, sent claude-haiku-5-5, answered by claude-haiku-5-5')
+  expect(w.logs).toContain('agent.spawn Explore: left alone (keeps its own model), runs on claude-opus-5-5')
+  expect(w.logs.some((l) => /^agent\.spawn general-purpose: routed to haiku \(answer\), runs on claude-haiku-5-5$/.test(l))).toBe(true)
+})
+
 test('without SWITCHYARD_DEBUG nothing is logged', async ($, on) => {
   const w = world(on)
   await start($, w.clock)
