@@ -75,7 +75,13 @@ export function world(on: On, opts: { env?: Record<string, string>; replies?: Re
   on('classic.PreModelSwitch', () => ({}))
   on('ui.open', () => ({ value: { isPlaced: true } }))
 
-  return { clock, store, requests, models, spawns }
+  const logs: string[] = []
+  on('ui.log', ($, e) => {
+    logs.push(e.text)
+    return { value: undefined }
+  })
+
+  return { clock, store, requests, models, spawns, logs }
 }
 
 export async function start($: Engine, clock: MockClock) {
@@ -92,7 +98,8 @@ export async function step($: Engine, e: { turnId: string; index: number; model:
   return next.value
 }
 
-export const prompt = ($: Engine, text: string) => $.prompt.submit({ text, wait: false, origin: { kind: 'composer' } })
+export const prompt = ($: Engine, text: string, kind: 'composer' | 'peer' | 'task-notification' | 'sdk' = 'composer') =>
+  $.prompt.submit({ text, wait: false, origin: { kind } })
 
 export const run = async ($: Engine, args: string) =>
   (await $.command.run({ command: 'switchyard', args, origin: { kind: 'composer' }, presentation: { isFullscreen: false, columns: 120 } })).text ?? ''

@@ -8,6 +8,12 @@ const OVERRIDES: [Tier, RegExp][] = [
   ['fable', /\b(?:use|switch to|with|on)\s+(?:fable|long)\b/i],
 ]
 
+/**
+ * Whether a prompt came from the user's own words. Notifications, sub-agent hand-backs, peers and
+ * schedules also arrive as prompts, and routing on them would pick a model for text nobody typed.
+ */
+export const isUserOrigin = (kind: string) => kind === 'composer' || kind === 'bridge' || kind === 'sdk'
+
 /** The tier the user named explicitly in the prompt, or null. */
 export function detectOverride(prompt: string): Tier | null {
   return OVERRIDES.find(([, re]) => re.test(prompt))?.[0] ?? null

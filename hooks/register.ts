@@ -1,6 +1,6 @@
 import type { EngineInterface, Register } from 'claude-code'
 import { resolveSettings, THRESHOLDS, tierOf, type Settings } from '../src/config.ts'
-import { decide, detectOverride, type Verdict } from '../src/policy.ts'
+import { decide, detectOverride, isUserOrigin, type Verdict } from '../src/policy.ts'
 import { askSystemOne, buildRequest, type Reply } from '../src/systemone.ts'
 import { addDecision, addStep, emptyTotals, mergeTotals, savings, type DecisionRecord, type Totals, type Usage } from '../src/stats.ts'
 import { bandLine, explainText, statsLines, type BandState } from '../src/view.ts'
@@ -11,6 +11,27 @@ type Saved = { updatedAt: number; totals: Totals; recent: DecisionRecord[] }
 const PANE = 'switchyard-stats'
 /** ponytail: "all-time" is the newest 100 sessions, which keeps $.store far under its 4 MiB cap. */
 const KEEP_SESSIONS = 100
+
+/**
+ * SWITCHYARD_DEBUG: `1` logs each routing event as a dim transcript line; any other value is also a
+ * file the lines are appended to. For development, to see where requests go.
+ */
+let debug: string | null = null
+let debugFile = Promise.resolve()
+
+function dbg($: Api, line: string) {
+  if (!debug) return
+  void $.ui.log(line)
+  if (debug === '1') return
+  const path = debug
+  // ponytail: $.fs.write replaces the file, so append is read-then-write, queued to keep lines in order
+  debugFile = debugFile
+    .then(async () => {
+      const old = (await $.fs.exists(path)) ? await $.fs.read(path) : ''
+      await $.fs.write(path, `${old}${new Date(await $.clock.now()).toISOString()} ${line}\n`)
+    })
+    .catch(() => {})
+}
 
 let settings: Settings | null = null
 let sessionId = 'unknown'
@@ -55,11 +76,14 @@ async function readEnv($: Api) {
   }
 }
 
-function ask($: Api, prompt: string, current: string, context: number, timeoutMs?: number, withKeepAlive = keepAlive): Promise<Reply> {
+async function ask($: Api, prompt: string, current: string, context: number, timeoutMs?: number, withKeepAlive = keepAlive): Promise<Reply> {
   const s = settings!
   const backend = s.backend!
   const request = buildRequest({ model: backend.model, prompt, current, contextTokens: context, models: s.models, tiers: s.tiers })
-  return askSystemOne($, backend, withKeepAlive ? { ...request, keep_alive: '30m' } : request, timeoutMs ?? backend.timeoutMs)
+  const reply = await askSystemOne($, backend, withKeepAlive ? { ...request, keep_alive: '30m' } : request, timeoutMs ?? backend.timeoutMs)
+  const result = reply.outcome === 'ok' ? `choice=${reply.answer.model} confidence=${reply.answer.confidence.toFixed(2)}` : reply.detail
+  dbg($, `systemone ${backend.url}/v1/systemone model=${backend.model} keep_alive=${withKeepAlive} → ${reply.outcome} ${reply.ms}ms ${result}`)
+  return reply
 }
 
 /** One call at startup: proves the server speaks SystemOne and loads a cold local model. */
@@ -172,6 +196,7 @@ export const register: Register = (on, options) => {
     settings = resolveSettings(await readEnv($), options)
     sessionId = await $.session.id()
     resetSession()
+    debug = (await $.env.get('SWITCHYARD_DEBUG')) || null
     const saved = (await $.store.get(`session:${sessionId}`)) as Saved | undefined
     if (saved) {
       // A reload of the module mid-session keeps the session's figures.
@@ -188,7 +213,10 @@ export const register: Register = (on, options) => {
 
   on('prompt.submit', async ($, e, next) => {
     // A prompt typed mid-turn joins the running turn; only an idle one starts a turn of its own.
-    if (e.turnId === undefined) pendingPrompt = e.text
+    // Injected messages (hand-backs, notifications, peers) start turns too but are not the user's words.
+    const routes = e.turnId === undefined && isUserOrigin(e.origin.kind)
+    if (routes) pendingPrompt = e.text
+    dbg($, `prompt.submit origin=${e.origin.kind} ${e.turnId === undefined ? 'idle' : 'mid-turn'} ${routes ? 'will route' : 'not routed'}: ${e.text.slice(0, 60).replace(/\s+/g, ' ')}`)
     return next(e)
   })
 

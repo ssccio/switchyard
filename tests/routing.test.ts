@@ -18,6 +18,51 @@ test('routes a fresh main-thread turn and pins it for the rest of the turn', asy
   expect(w.requests[1]!.body.state.request).toBe('rename the variable x to count')
 })
 
+test('an injected message that starts a turn is not routed on', async ($, on) => {
+  const w = world(on)
+  await start($, w.clock)
+  await prompt($, '<agent-message>hand-back from a sub-agent</agent-message>', 'peer')
+  await step($, { turnId: 't1', index: 0, model: 'claude-opus-5-5' })
+  expect(w.models).toEqual(['claude-opus-5-5'])
+  // Only the startup probe reached the decision server
+  expect(w.requests.length).toBe(1)
+})
+
+test('a notification does not use up the pending user prompt', async ($, on) => {
+  const w = world(on)
+  await start($, w.clock)
+  await prompt($, 'rename x')
+  await prompt($, 'build finished', 'task-notification')
+  await step($, { turnId: 't1', index: 0, model: 'claude-opus-5-5' })
+  expect(w.requests[1]!.body.state.request).toBe('rename x')
+  expect(w.models).toEqual(['claude-haiku-5-5'])
+})
+
+test('claude -p prompts are routed', async ($, on) => {
+  const w = world(on)
+  await start($, w.clock)
+  await prompt($, 'rename x', 'sdk')
+  await step($, { turnId: 't1', index: 0, model: 'claude-opus-5-5' })
+  expect(w.models).toEqual(['claude-haiku-5-5'])
+})
+
+test('debug mode logs where requests go, and stays silent otherwise', async ($, on) => {
+  const w = world(on, { env: { JEV_API_KEY: 'test-key', SWITCHYARD_DEBUG: '1' } })
+  await start($, w.clock)
+  await prompt($, 'rename x')
+  await prompt($, 'hand-back', 'peer')
+  expect(w.logs.some((l) => /systemone https:\/\/api\.typesafe\.ai\/v1\/systemone model=jev-latest .* ok /.test(l))).toBe(true)
+  expect(w.logs.some((l) => /prompt\.submit origin=composer idle will route: rename x/.test(l))).toBe(true)
+  expect(w.logs.some((l) => /prompt\.submit origin=peer idle not routed/.test(l))).toBe(true)
+})
+
+test('without SWITCHYARD_DEBUG nothing is logged', async ($, on) => {
+  const w = world(on)
+  await start($, w.clock)
+  await prompt($, 'rename x')
+  expect(w.logs).toEqual([])
+})
+
 test('a turn with no new prompt keeps the current model and asks nothing', async ($, on) => {
   const w = world(on)
   await start($, w.clock)
