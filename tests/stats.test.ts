@@ -56,6 +56,6 @@ test('mergeTotals adds sessions together', () => {
   expect(all.steps).toBe(2)
   expect(all.outcomes).toEqual({ routed: 2 })
   expect(all.latencies).toEqual([10, 10])
-  expect(all.tokens['claude-haiku-5-5'].input).toBe(2000)
+  expect(all.tokens['claude-haiku-5-5']?.input).toBe(2000)
   expect(micro(all.actualUsd)).toBe(300)
 })

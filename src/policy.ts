@@ -55,7 +55,7 @@ export function decide(input: {
   if (answer.confidence < THRESHOLDS.minConfidence) {
     if (rankOf(target) < rankOf(current)) return settle(current, 'low-confidence-no-downgrade')
     const ceiling = Math.max(rankOf(current), rankOf(THRESHOLDS.uncertainCeiling))
-    if (rankOf(target) > ceiling) return settle(TIER_NAMES[ceiling], 'low-confidence-capped')
+    if (rankOf(target) > ceiling) return settle(TIER_NAMES[ceiling]!,'low-confidence-capped')
   }
   if (rankOf(target) < rankOf(current) && contextTokens > THRESHOLDS.downgradeMaxContextTokens) {
     return settle(current, 'downgrade-not-worth-cache-rebuild')

@@ -101,7 +101,7 @@ export const savings = (t: Totals) => ({
 export function percentile(xs: readonly number[], p: number): number | null {
   if (xs.length === 0) return null
   const sorted = [...xs].sort((a, b) => a - b)
-  return sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))]
+  return sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))] ?? null
 }
 
 export function mergeTotals(all: readonly Totals[]): Totals {
