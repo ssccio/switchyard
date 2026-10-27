@@ -41,6 +41,21 @@ TypeSafe needs `JEV_API_KEY` (or `TYPESAFE_API_KEY`). For a local model:
     claude plugin test
     claude plugin validate . --strict
 
+## Measured (2026-10-27, Apple Silicon, switchyard's own request)
+
+| | TypeSafe `jev-latest` | Ollama `clef-flash` |
+| --- | --- | --- |
+| Cold first call | 341 ms | 5.1 s (model load) |
+| Warm call, new prompt | 113–176 ms | 508 ms |
+| "rename x to count" | Haiku, confidence 0.95–0.97 | Haiku, confidence 0.31 |
+| "find why sessions drop under load" | — | Opus, confidence 0.41 |
+
+clef-flash reports much lower confidence than Jev for the same choice. The policy's 0.3
+low-confidence threshold was tuned on Jev, so with clef it sits right at the edge.
+
+Also verified live: a `claude -p` turn on an Opus 5.5 session was answered by `claude-haiku-5-5`
+with the mod loaded, so `turn.step` accepts exact model ids.
+
 ## Limits
 
 - Savings price the same token counts at the baseline model, so they are an estimate. "Net"
