@@ -134,6 +134,14 @@ test('routes a sub-agent when it is spawned', async ($, on) => {
   expect(w.requests[1]!.body.state.request).toBe('find every caller of parse() and list them')
 })
 
+test('an Explore spawn keeps its own cheap model and asks nothing', async ($, on) => {
+  const w = world(on)
+  await start($, w.clock)
+  await spawn($, { subagentType: 'Explore' })
+  expect(w.spawns).toEqual([undefined])
+  expect(w.requests.length).toBe(1)
+})
+
 test('a spawn that names a model or forks passes through', async ($, on) => {
   const w = world(on)
   await start($, w.clock)

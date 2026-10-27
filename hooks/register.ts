@@ -1,5 +1,5 @@
 import type { EngineInterface, Register } from 'claude-code'
-import { resolveSettings, THRESHOLDS, tierOf, type Settings } from '../src/config.ts'
+import { PASSTHROUGH_AGENTS, resolveSettings, THRESHOLDS, tierOf, type Settings } from '../src/config.ts'
 import { decide, detectOverride, isUserOrigin, type Verdict } from '../src/policy.ts'
 import { askSystemOne, buildRequest, type Reply } from '../src/systemone.ts'
 import { addDecision, addStep, emptyTotals, mergeTotals, savings, type DecisionRecord, type Totals, type Usage } from '../src/stats.ts'
@@ -234,7 +234,7 @@ export const register: Register = (on, options) => {
   })
 
   on('agent.spawn', async ($, e, next) => {
-    if (!settings?.backend || paused || e.fork || e.model !== undefined) return next(e)
+    if (!settings?.backend || paused || e.fork || e.model !== undefined || PASSTHROUGH_AGENTS.includes(e.subagentType)) return next(e)
     // ponytail: an agent definition's own model is invisible here, so the parent's stands in for "current"
     const verdict = await route($, e.prompt, e.parentModel, 0, true)
     const result = await next(verdict.changed ? { ...e, model: settings.models[verdict.tier] } : e)
